@@ -1,0 +1,5 @@
+*.egg-info
+.python-version
+.DS_Store
+*.sw[op]
+__pycache__/

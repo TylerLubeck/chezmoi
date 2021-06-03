@@ -1,0 +1,167 @@
+# vim: foldmethod=marker foldlevel=0 filetype=zsh foldmarker=[[[,]]]
+
+# To Profile, run `PROFILE_ZSH=true zsh`
+if [[ "$PROFILE_ZSH"x != x ]]; then
+    zmodload zsh/zprof
+fi
+
+#[[[1 CompInit Stuff
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+setopt appendhistory extendedglob
+unsetopt beep nomatch
+bindkey -e
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+
+zstyle ':completion:*' completer _expand _complete _ignored _correct _approximate
+zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}' 'm:{[:lower:]}={[:upper:]}' 'm:{[:lower:]}={[:upper:]}' 'm:{[:lower:]}={[:upper:]}'
+zstyle :compinstall filename '{{ .chezmoi.homedir }}/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+#]]]1
+
+#[[[1 Generic Exports
+export EDITOR=nvim
+export GOPATH="${HOME}/go"
+export LESS="IFRX"
+#]]]1
+
+#[[[1 PATH Updates
+export PATH="${GOPATH}/bin:${PATH}"
+export PATH="${HOME}/.local/bin:$PATH"
+#]]]1
+
+#[[[1 Utility Setup
+
+#[[[2 FZF
+export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+#]]]2
+
+#[[[2 PyEnv
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+export PYTHON_CONFIGURE_OPTS="--enable-shared"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+fi
+#]]]2
+
+#[[[2 Other Stuff
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+#]]]2
+
+#]]]1
+
+#[[[1 Utility functions
+
+function rot13 {
+    local msg="${@}"
+    echo "$msg" | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+}
+
+function awsprofile() {
+    local profile="$1"
+    if grep "\[profile $profile\]" ~/.aws/config > /dev/null; then
+        export AWS_PROFILE="$profile"
+        if ! aws sts get-caller-identity 2>/dev/null >/dev/null; then
+            aws sso login --profile "$profile"
+        fi
+    else
+        unset AWS_PROFILE
+        if [ ! "$profile" == "unset" ]; then
+            echo >&2 "No AWS profile with name $profile. Unsetting for safety."
+            return 1
+        fi
+    fi
+}
+alias awsp="awsprofile"
+
+function kubecontext() {
+    local profile="$1"
+    if kubectl config get-contexts -o name | grep "^$profile$" > /dev/null; then
+        kubectl config use-context "$profile" > /dev/null
+    else
+        kubectl config unset current-context > /dev/null
+        if [ ! "$profile" == "unset" ] && [ ! "$profile" == "eks-unset" ]; then
+            echo >&2 "No Kubernetes context with name $profile. Unsetting for safety"
+            return 1
+        fi
+    fi
+}
+alias kubep=kubecontext
+
+function usecloud() {
+    local profile="$1"
+    awsprofile "$profile"
+    kubecontext "eks-$profile"
+}
+
+#]]]1
+
+#[[[1 Aliases
+alias vim=nvim
+alias vimwiki="nvim +'VimWikiIndex'"
+alias t=task
+
+#[[[2 Git Aliases
+
+# https://github.com/ohmyzsh/ohmyzsh/blob/f21e646ce6c09198f7f625c597f08af49551fdb0/lib/git.zsh#L8
+function __git_prompt_git() {
+  GIT_OPTIONAL_LOCKS=0 command git "$@"
+}
+
+# https://github.com/ohmyzsh/ohmyzsh/blob/f21e646ce6c09198f7f625c597f08af49551fdb0/lib/git.zsh#L96
+function git_current_branch() {
+  local ref
+  ref=$(__git_prompt_git symbolic-ref --quiet HEAD 2> /dev/null)
+  local ret=$?
+  if [[ $ret != 0 ]]; then
+    [[ $ret == 128 ]] && return  # no git repo.
+    ref=$(__git_prompt_git rev-parse --short HEAD 2> /dev/null) || return
+  fi
+  echo ${ref#refs/heads/}
+}
+
+alias g='git'
+alias ga='git add'
+alias gc='git commit'
+alias gcl='git clone'
+alias gco='git checkout'
+alias gd='git diff'
+alias ggpull='git pull origin "$(git_current_branch)"'
+alias ggpush='git push origin "$(git_current_branch)"'
+alias grb='git rebase'
+alias grbi='git rebase -i'
+alias gs="git status"
+
+#]]]2
+#]]]1
+
+#[[[1 Display
+# Enable colored ls output
+export CLICOLOR=1
+
+source ~/.zplug/init.zsh
+zplug 'dracula/zsh', as:theme
+# This must be the last plugin installed
+zplug 'zsh-users/zsh-syntax-highlighting', defer:2
+
+if ! zplug check --verbose; then
+    zplug install
+fi
+#]]]1
+
+eval "$(starship init zsh)"
+
+if [[ "$PROFILE_ZSH"x != x ]]; then
+    zprof > ~/tmp/zsh-profile
+fi

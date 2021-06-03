@@ -1,0 +1,172 @@
+" vim: set foldmethod=marker foldlevel=0: foldmarker=[[[,]]]
+
+" General `set` commands [[[1
+set nocompatible                        " Because vi backwards compat is so 1980s
+set hidden                              " Hide an unsaved buffer rather than requesting a save
+set wildmenu                            " Tab complete menu items
+set showcmd                             " Shows the last typed key in command mode
+set laststatus=2                        " Always show the status line
+set confirm                             " Reminds you to save when you quit
+set smartindent                         " Tries to be smart about indenting
+set showmatch                           " Highlights matching brackets/parans/quotes
+set filetype=on                         " enables filetype detection
+set number                              " show linenumber of current line
+set relativenumber                      " show distance to lines near me
+set backspace=2                         " Make backspace behave appropriately
+
+set expandtab                           " Expands tabs to spaces
+set shiftwidth=4                        " >> and << indent by 4
+set softtabstop=4                       " How many spaces in a tab when editing
+set tabstop=4                           " How many spaces in a tab when displaying
+
+set lazyredraw                          " redraw only when we need to.
+set incsearch                           " search as characters are entered
+set ignorecase                          " Ignore case when search is all lowercase
+set smartcase                           " But pay attention to case if search is cased  
+set hlsearch                            " highlight matches
+"]]]1
+
+filetype plugin indent on
+syntax enable
+
+" Remappings [[[1
+nore ; :
+nore , ;
+"]]]1
+
+
+"Vim Plug [[[1
+call plug#begin('~/.vim/plugged')
+
+"Utilities [[[2
+Plug 'mileszs/ack.vim'                                      " <leader> a -> search files using ack/ag
+Plug 'tpope/vim-fugitive'                                   " Git commands in VIM
+Plug 'tpope/vim-surround'                                   " Stuff for surrounding other stuff
+Plug 'tpope/vim-eunuch'                                     " :Rename, :Remove, etc
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }      " Directory Tree
+"Plug 'scrooloose/syntastic'                                 " Syntax checking for most languages
+"Plug 'Valloric/YouCompleteMe'                               " AutoCompletion
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }         " Install base fzf vim plugin
+Plug 'junegunn/fzf.vim'                                     " Install base fzf vim plugin
+Plug 'tmhedberg/SimpylFold'
+"Plug 'SirVer/ultisnips'                                     " Snippets! Hurray!
+Plug 'christoomey/vim-tmux-navigator'                       " For TMUX Integration
+Plug 'preservim/tagbar'
+"]]]2
+
+"Knowledge Graph [[[2
+Plug 'vimwiki/vimwiki'                       
+Plug 'mattn/calendar-vim'
+Plug 'tools-life/taskwiki'
+Plug 'powerman/vim-plugin-AnsiEsc'
+Plug 'farseer90718/vim-taskwarrior'
+"]]]2
+
+"Looks [[[2
+"Plug 'lifepillar/vim-solarized8'
+Plug 'dracula/vim', {'as': 'dracula'}
+Plug 'itchyny/lightline.vim'
+"]]]2
+
+"Language Utils [[[2
+Plug 'tpope/vim-endwise'                                                        " Adds end statements to blocks. e.g. if/fi in bash
+Plug 'elzr/vim-json', { 'for': ['json'] }                                       " Really good json syntax highlighting/folding/concealing
+Plug 'fatih/vim-go', { 'for': ['go', 'golang'] }                                " Golang autoindent, syntax checking, type checking
+Plug 'suan/vim-instant-markdown' , { 'for': ['markdown', 'md'] }                " Opens a browser window to display rendered markdown
+Plug 'psf/black', { 'branch': 'stable', 'for': ['python'] }                     " Python Black Formatter
+Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }                        " Python Syntax Highlighting
+Plug 'jeetsukumaran/vim-pythonsense', { 'for': ['python'] }                     " Python text objects and motions
+Plug 'jvirtanen/vim-hcl'                                                        " Hashicorp HCL Syntax Highlighting
+
+
+"Plug 'mattn/emmet-vim', { 'for': ['html', 'css', 'htmljinja'] }                 " HTML generation
+"Plug 'vim-scripts/a.vim', { 'for': ['c', 'cpp', 'c++'] }                        " Flips between .h and .c files
+"Plug 'elixir-editors/vim-elixir'                                                " Elixir
+"Plug 'pangloss/vim-javascript', { 'for': ['javascript'] }                       " Folding and highlighting for Javascript
+"Plug 'xavierchow/vim-swagger-preview'                                           " OpenAPI / Swagger
+
+"]]]2
+
+call plug#end()
+
+"]]]1
+
+" Configure Ack.vim [[[1
+if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+endif
+cnoreabbrev Ack Ack!
+nnoremap <Leader>a :Ack!<Space>
+"]]]1
+
+" IDE Configs [[[1
+nnoremap <F8> :TagbarToggle<CR>
+augroup jenkins
+    autocmd!
+    autocmd BufNewFile,BufRead Jenkinsfile.* setf groovy
+augroup END
+"]]]1
+
+
+" Colorscheme Setup [[[1
+set background=dark
+set termguicolors
+"colorscheme solarized8
+colorscheme dracula
+"]]]1
+
+" Cursor Behavior [[[1
+highlight LineNr ctermfg=238 ctermbg=0
+highlight CursorLineNr ctermfg=gray ctermbg=0
+set cursorline
+set scrolloff=5
+"]]]1
+
+"Split Configs [[[1
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
+set splitbelow
+set splitright
+"]]]1
+
+" Markdown Configs [[[1
+" Docs pulled from here https://github.com/tpope/vim-markdown
+" In theory the plugin is built in to nvim? So this should just be configuring
+" the built in thing
+let g:markdown_fenced_languages = ['html', 'python', 'bash=sh']
+"1]]]
+
+
+" Python Configs [[[1
+let g:loaded_python_provider = 0 " disable python 2 support
+let g:python3_host_prog = $HOME.'/.pyenv/versions/neovim/bin/python3'
+" Configure Black
+"autocmd BufWritePre *.py execute ':Black'
+nnoremap <Leader>b :Black<CR>
+let g:black_virtualenv = $HOME.'/.pyenv/versions/neovim'
+"1]]]
+
+" Knowledge Graph Configs [[[1
+"nnoremap <Leader>ww :VimWikiOn
+let g:vimwiki_list = [{
+                      \ 'path': '{{ .directories.vimwiki }}/src',
+                      \ 'path_html': '{{ .directories.vimwiki }}/html',
+                      \ 'syntax': 'markdown',
+                      \ 'ext': '.md',
+                      \ 'template_path': '{{ .directories.vimwiki }}/templates',
+                      \ 'template_default': 'default',
+                      \ 'template_ext': '.html',
+                      \ 'custom_wiki2html': 'vimwiki_markdown'
+                      \}]
+let g:vimwiki_global_ext = 0
+command! Diary VimwikiDiaryIndex
+augroup vimwikigroup
+    autocmd!
+    " automatically update links on read diary
+    autocmd BufRead,BufNewFile diary.wiki VimwikiDiaryGenerateLinks
+    " automatically generate new diary entries from template
+    autocmd BufNewFile {{ .directories.vimwiki }}/src/diary/*.md :silent 0r !{{ .directories.vimwiki }}/bin/generate-vimwiki-diary-template.py '%'
+augroup end
+"1]]]

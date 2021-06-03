@@ -1,0 +1,11 @@
+[core]
+	excludesfile = {{ .chezmoi.homedir }}/.gitignore-global
+[user]
+	name = {{ .name | quote }}
+	email = {{ .email | quote }}
+[rerere]
+	enabled = true
+[alias]
+	lg = log --color --graph --abbrev-commit --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset'
+[pull]
+	ff = only
