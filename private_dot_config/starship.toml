@@ -13,7 +13,7 @@ format = "[\\[$symbol$profile\\]]($style)"
 style = "bold blue"
 
 [aws.region_aliases]
-us-east-1 = ""
+us-east-1 = "ue1"
 
 [directory]
 format = ":: ([ $read_only]($read_only_style) )[$path]($style)"
