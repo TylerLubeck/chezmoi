@@ -61,6 +61,20 @@ fi
 
 #[[[1 Utility functions
 
+function set-window-title() {
+    local title="$1"
+    printf "\e]2;$title\a"
+}
+
+function monitortasks() {
+    task rc.gc=off burndown.daily;
+    echo "Updated: $(date)";
+    while inotifywait -e close_write -qq ~/.task/pending.data; do 
+        task rc.gc=off burndown.daily;
+        echo "Updated: $(date)";
+    done
+}
+
 function rot13 {
     local msg="${@}"
     echo "$msg" | tr 'A-Za-z' 'N-ZA-Mn-za-m'
@@ -110,6 +124,7 @@ alias vim=nvim
 alias vimwiki="nvim +'VimWikiIndex'"
 alias t=task
 alias ls=lsd
+alias peaclock="peaclock --config-dir ~/.config/peaclock"
 
 #[[[2 Git Aliases
 
@@ -164,3 +179,4 @@ eval "$(starship init zsh)"
 if [[ "$PROFILE_ZSH"x != x ]]; then
     zprof > ~/tmp/zsh-profile
 fi
+
